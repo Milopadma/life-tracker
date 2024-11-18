@@ -1,101 +1,185 @@
-import Image from "next/image";
+"use client";
+
+import { useState } from "react";
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
+
+type LifeEvent = {
+  age: number;
+  name: string;
+  multiplier: number;
+  duration: number;
+};
+
+const LIFE_EVENTS: LifeEvent[] = [
+  { age: 22, name: "College", multiplier: 1.5, duration: 4 },
+  { age: 28, name: "Marriage", multiplier: 2, duration: 1 },
+  { age: 30, name: "First Child", multiplier: 1.8, duration: 18 },
+  { age: 33, name: "Second Child", multiplier: 1.5, duration: 18 },
+  { age: 45, name: "Children College", multiplier: 2, duration: 4 },
+  { age: 65, name: "Retirement", multiplier: 1.3, duration: 20 },
+];
+
+type ChartConfig = {
+  yearly: {
+    label: string;
+    color: string;
+  };
+};
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const [monthlySpending, setMonthlySpending] = useState<number>(0);
+  const [currentAge, setCurrentAge] = useState<number>(25);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  const calculateLifetimeSpending = (monthly: number, startAge: number) => {
+    const yearlyBase = monthly * 12;
+    const lifeExpectancy = 85;
+
+    return Array.from({ length: lifeExpectancy - startAge }, (_, index) => {
+      const currentYear = startAge + index;
+      let yearlyAmount = yearlyBase;
+      let eventName = "";
+
+      // check for overlapping life events
+      LIFE_EVENTS.forEach((event) => {
+        if (
+          currentYear >= event.age &&
+          currentYear < event.age + event.duration
+        ) {
+          yearlyAmount *= event.multiplier;
+          eventName = event.name;
+        }
+      });
+
+      return {
+        year: `Age ${currentYear}`,
+        amount: Math.round(yearlyAmount),
+        fill: `hsl(${220 + index * 2} 70% 50%)`,
+        event: eventName,
+      };
+    });
+  };
+
+  const chartConfig: ChartConfig = {
+    yearly: {
+      label: "Yearly Spending",
+      color: "hsl(var(--chart-1))",
+    },
+  };
+
+  const spendingData =
+    monthlySpending > 0
+      ? calculateLifetimeSpending(monthlySpending, currentAge)
+      : [];
+  const totalLifetimeSpending = spendingData.reduce(
+    (acc, year) => acc + year.amount,
+    0
+  );
+
+  return (
+    <div className="min-h-screen bg-neutral-100 text-neutral-950 p-8 font-sans">
+      <main className="max-w-6xl mx-auto space-y-8">
+        <h1 className="text-3xl font-bold text-center">Lifetracker</h1>
+        <p className="text-center text-neutral-600">
+          Visualize your lifetime spending including major life events
+        </p>
+
+        <div className="flex flex-col items-center gap-8">
+          <div className="w-full max-w-md space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                Current Age
+              </label>
+              <input
+                type="number"
+                min="18"
+                max="80"
+                value={currentAge}
+                onChange={(e) => setCurrentAge(Number(e.target.value))}
+                className="w-full px-4 py-2 rounded-lg border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Enter your current age"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                Monthly Spending ($)
+              </label>
+              <input
+                type="number"
+                value={monthlySpending}
+                onChange={(e) => setMonthlySpending(Number(e.target.value))}
+                className="w-full px-4 py-2 rounded-lg border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Enter your monthly spending"
+              />
+            </div>
+          </div>
+
+          {monthlySpending > 0 && (
+            <>
+              <div className="text-center">
+                <p className="text-lg font-medium">
+                  Estimated Lifetime Spending
+                </p>
+                <p className="text-2xl font-bold">
+                  ${totalLifetimeSpending.toLocaleString()}
+                </p>
+              </div>
+              <div className="w-full overflow-x-auto">
+                <ChartContainer
+                  config={chartConfig}
+                  className="h-[400px] min-w-[800px]"
+                >
+                  <BarChart
+                    data={spendingData}
+                    margin={{ top: 20, right: 30, left: 60, bottom: 60 }}
+                  >
+                    <CartesianGrid vertical={false} opacity={0.2} />
+                    <XAxis
+                      dataKey="year"
+                      tickLine={false}
+                      axisLine={false}
+                      angle={-45}
+                      textAnchor="end"
+                      height={60}
+                    />
+                    <YAxis
+                      tickFormatter={(value) => `$${value.toLocaleString()}`}
+                      tickLine={false}
+                      axisLine={false}
+                    />
+                    <ChartTooltip
+                      content={({ active, payload }) => {
+                        if (active && payload && payload.length) {
+                          const data = payload[0].payload;
+                          return (
+                            <div className="bg-white p-2 shadow-lg rounded-lg border">
+                              <p className="font-medium">{data.year}</p>
+                              <p className="text-sm">
+                                ${data.amount.toLocaleString()}
+                              </p>
+                              {data.event && (
+                                <p className="text-sm text-blue-600">
+                                  {data.event}
+                                </p>
+                              )}
+                            </div>
+                          );
+                        }
+                        return null;
+                      }}
+                    />
+                    <Bar dataKey="amount" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ChartContainer>
+              </div>
+            </>
+          )}
         </div>
       </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
     </div>
   );
 }
