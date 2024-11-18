@@ -70,3 +70,11 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+number-flow-react::part(prefix) {
+  margin-right: 0.125em;
+}
+
+number-flow-react::part(number) {
+  font-variant-numeric: tabular-nums;
+}
