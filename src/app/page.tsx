@@ -11,7 +11,6 @@ import {
 } from "recharts";
 import { ChartContainer, ChartTooltip } from "@/components/ui/chart";
 import { Sparkles, TrendingUp, Globe2, Clock } from "lucide-react";
-import NumberFlow from "@number-flow/react";
 
 type LifeEvent = {
   age: number;
@@ -82,6 +81,11 @@ export default function Home() {
   const [animatedStats, setAnimatedStats] = useState<LifeStatistic[]>(
     LIFE_STATISTICS.map((stat) => ({ ...stat, value: 0 }))
   );
+  const [isClient, setIsClient] = useState<boolean>(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -157,6 +161,16 @@ export default function Home() {
       ? calculateLifetimeSpending(monthlySpending, currentAge)
       : [];
 
+  // helper function for formatting currency
+  const formatCurrency = (value: number): string => {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(value);
+  };
+
   return (
     <div className="min-h-screen bg-neutral-100 text-neutral-950 p-4 sm:p-8 font-roboto">
       <main className="max-w-6xl mx-auto space-y-12">
@@ -203,23 +217,15 @@ export default function Home() {
             </div>
           </div>
 
-          {monthlySpending > 0 && (
+          {monthlySpending > 0 && isClient && (
             <>
               <div className="text-center space-y-1 bg-white p-6 rounded-xl shadow-sm w-full max-w-md border border-neutral-200">
                 <p className="text-neutral-600 font-medium">
                   Estimated Lifetime Spending
                 </p>
-                <NumberFlow
-                  value={animatedTotal}
-                  format={{
-                    style: "currency",
-                    currency: "USD",
-                    minimumFractionDigits: 0,
-                    maximumFractionDigits: 0,
-                  }}
-                  className="text-3xl font-bold font-space-grotesk text-blue-600"
-                  transformTiming={{ duration: 1500, easing: "ease-out" }}
-                />
+                <span className="text-3xl font-bold font-space-grotesk text-blue-600">
+                  {formatCurrency(animatedTotal)}
+                </span>
               </div>
               <div className="w-full overflow-hidden bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-neutral-200">
                 <div className="relative w-full min-h-[400px]">
@@ -290,15 +296,9 @@ export default function Home() {
                                           : "text-neutral-900"
                                       }`}
                                     >
-                                      <NumberFlow
-                                        value={data.yearlySpend}
-                                        format={{
-                                          style: "currency",
-                                          currency: "USD",
-                                          minimumFractionDigits: 0,
-                                          maximumFractionDigits: 0,
-                                        }}
-                                      />
+                                      <span className="font-medium">
+                                        ${data.yearlySpend.toLocaleString()}
+                                      </span>
                                     </span>
                                   </p>
                                   {data.event && (
@@ -360,33 +360,9 @@ export default function Home() {
                           {stat.icon}
                         </div>
                         <span className="text-2xl font-space-grotesk font-bold text-neutral-900">
-                          <NumberFlow
-                            value={stat.value}
-                            format={
-                              stat.format === "currency"
-                                ? {
-                                    style: "currency",
-                                    currency: "USD",
-                                    minimumFractionDigits: 0,
-                                    maximumFractionDigits: 0,
-                                  }
-                                : stat.format === "percent"
-                                ? {
-                                    style: "percent",
-                                    minimumFractionDigits: 1,
-                                    maximumFractionDigits: 1,
-                                  }
-                                : {
-                                    style: "decimal",
-                                    minimumFractionDigits: 0,
-                                    maximumFractionDigits: 0,
-                                  }
-                            }
-                            transformTiming={{
-                              duration: 1500,
-                              easing: "ease-out",
-                            }}
-                          />
+                          <span className="font-medium">
+                            {formatCurrency(stat.value)}
+                          </span>
                         </span>
                       </div>
                       <h3 className="font-medium text-neutral-900 mb-1">
@@ -410,15 +386,7 @@ export default function Home() {
                         Monthly Income Needed for Retirement
                       </span>
                       <span className="font-medium">
-                        <NumberFlow
-                          value={Math.round(monthlySpending * 0.8)}
-                          format={{
-                            style: "currency",
-                            currency: "USD",
-                            minimumFractionDigits: 0,
-                            maximumFractionDigits: 0,
-                          }}
-                        />
+                        {formatCurrency(Math.round(monthlySpending * 0.8))}
                       </span>
                     </div>
                     <div className="flex items-center justify-between p-3 bg-neutral-50 rounded-lg">
@@ -426,15 +394,7 @@ export default function Home() {
                         Recommended Emergency Fund
                       </span>
                       <span className="font-medium">
-                        <NumberFlow
-                          value={monthlySpending * 6}
-                          format={{
-                            style: "currency",
-                            currency: "USD",
-                            minimumFractionDigits: 0,
-                            maximumFractionDigits: 0,
-                          }}
-                        />
+                        {formatCurrency(monthlySpending * 6)}
                       </span>
                     </div>
                     <div className="flex items-center justify-between p-3 bg-neutral-50 rounded-lg">
@@ -442,15 +402,7 @@ export default function Home() {
                         Yearly Investment Target (20% of Income)
                       </span>
                       <span className="font-medium">
-                        <NumberFlow
-                          value={monthlySpending * 12 * 0.2}
-                          format={{
-                            style: "currency",
-                            currency: "USD",
-                            minimumFractionDigits: 0,
-                            maximumFractionDigits: 0,
-                          }}
-                        />
+                        {formatCurrency(monthlySpending * 12 * 0.2)}
                       </span>
                     </div>
                   </div>
