@@ -9,11 +9,7 @@ import {
   YAxis,
   ReferenceLine,
 } from "recharts";
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@/components/ui/chart";
+import { ChartContainer, ChartTooltip } from "@/components/ui/chart";
 import { Sparkles, TrendingUp, Globe2, Clock } from "lucide-react";
 import NumberFlow from "@number-flow/react";
 
@@ -160,8 +156,6 @@ export default function Home() {
     monthlySpending > 0
       ? calculateLifetimeSpending(monthlySpending, currentAge)
       : [];
-  const totalLifetimeSpending =
-    spendingData.length > 0 ? spendingData[spendingData.length - 1].amount : 0;
 
   return (
     <div className="min-h-screen bg-neutral-100 text-neutral-950 p-4 sm:p-8 font-roboto">
